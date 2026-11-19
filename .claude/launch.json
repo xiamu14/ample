@@ -1,0 +1,1 @@
+{"version":"0.0.1","configurations":[{"name":"notes","runtimeExecutable":"npm","runtimeArgs":["run","dev","--prefix","/Users/ben/Workspace/Project/ample"],"port":3010}]}

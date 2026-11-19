@@ -18,6 +18,22 @@ npm install
 npm run dev
 ```
 
+也可以在数据库启动后，将前端和 API 一起放到后台运行：
+
+```bash
+npm run nohub
+```
+
+```bash
+npm run nohub:status
+```
+
+```bash
+npm run nohub:stop
+```
+
+日志保存在 `.runtime/nohub.log`。后台命令不会启动或停止数据库。LAN 访问由工作区的 `portlan` 统一管理：启动服务后，在 `portlan` 目录运行 `bun run start`。
+
 浏览器打开 `http://127.0.0.1:3010`。PostgreSQL 监听本机 55432 端口，API 监听本机 3001 端口。可通过环境变量 `DATABASE_URL` 指定其他 PostgreSQL 连接。
 
 笔记保存在 Docker 的 PostgreSQL 卷中，媒体文件保存在 `data/uploads`。备份时需要同时备份数据库卷和该目录。不要使用 `docker compose down -v`，该命令会删除数据库卷。

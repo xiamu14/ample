@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently -k \"npm:server\" \"npm:web\"",
+    "nohub": "node scripts/nohub.mjs start",
+    "nohub:stop": "node scripts/nohub.mjs stop",
+    "nohub:status": "node scripts/nohub.mjs status",
     "server": "tsx watch server/index.js",
     "web": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build"

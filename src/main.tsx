@@ -17,7 +17,16 @@ const localDate = (date = new Date()) => `${date.getFullYear()}-${String(date.ge
 const parseDate = (s: string) => new Date(`${s}T12:00:00`)
 const shiftDate = (s: string, n: number) => { const d = parseDate(s); d.setDate(d.getDate() + n); return localDate(d) }
 const formatDate = (s: string, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('zh-CN', opts).format(parseDate(s))
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: Infinity,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: false,
+    },
+  },
+})
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, init)
@@ -37,9 +46,22 @@ function App() {
   const [uploading, setUploading] = useState(0)
   const current = useRef<{ date: string; version: number; sections: JSONContent[]; dirty: boolean; saving: boolean } | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const { data: note, isError, isLoading } = useQuery({ queryKey: ['note', selected], queryFn: () => request<Note>(`/api/notes/${selected}`), retry: false })
-  const { data: dates = [] } = useQuery({ queryKey: ['dates'], queryFn: () => request<string[]>('/api/notes'), retry: false })
-  useEffect(() => { const check = () => { const next = localDate(); setToday(next); void client.fetchQuery({ queryKey: ['note', next], queryFn: () => request<Note>(`/api/notes/${next}`) }).then(() => client.invalidateQueries({ queryKey: ['dates'] })).catch(() => {}) }; check(); const interval = setInterval(check, 60000); window.addEventListener('focus', check); return () => { clearInterval(interval); window.removeEventListener('focus', check) } }, [client])
+  const { data: note, isError, isLoading } = useQuery({ queryKey: ['note', selected], queryFn: () => request<Note>(`/api/notes/${selected}`), gcTime: 0 })
+  const { data: dates = [] } = useQuery({ queryKey: ['dates'], queryFn: () => request<string[]>('/api/notes'), enabled: calendarOpen, staleTime: 0 })
+  useEffect(() => {
+    let midnightTimer: ReturnType<typeof setTimeout>
+    const updateToday = () => {
+      clearTimeout(midnightTimer)
+      const now = new Date()
+      setToday(localDate(now))
+      const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+      midnightTimer = setTimeout(updateToday, midnight.getTime() - now.getTime())
+    }
+    const onVisible = () => { if (document.visibilityState === 'visible') updateToday() }
+    updateToday()
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { clearTimeout(midnightTimer); document.removeEventListener('visibilitychange', onVisible) }
+  }, [])
   useEffect(() => { if (note && note.date === selected && current.current?.date !== selected) { current.current = { date: note.date, version: note.version, sections: [toDocument(note.sections || [])], dirty: false, saving: false }; setSections(current.current.sections); setStatus('已保存'); setError('') } }, [note, selected])
   const save = useCallback(async (): Promise<boolean> => {
     const state = current.current
