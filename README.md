@@ -18,7 +18,7 @@ npm install
 npm run dev
 ```
 
-浏览器打开 `http://127.0.0.1:5173`。PostgreSQL 监听本机 55432 端口，API 监听本机 3001 端口。可通过环境变量 `DATABASE_URL` 指定其他 PostgreSQL 连接。
+浏览器打开 `http://127.0.0.1:3010`。PostgreSQL 监听本机 55432 端口，API 监听本机 3001 端口。可通过环境变量 `DATABASE_URL` 指定其他 PostgreSQL 连接。
 
 笔记保存在 Docker 的 PostgreSQL 卷中，媒体文件保存在 `data/uploads`。备份时需要同时备份数据库卷和该目录。不要使用 `docker compose down -v`，该命令会删除数据库卷。
 
